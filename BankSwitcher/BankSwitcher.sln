@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2000
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankSwitcher", "BankSwitcher\BankSwitcher.csproj", "{BA171D49-0B55-4CEB-9798-4B293F26CD02}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BA171D49-0B55-4CEB-9798-4B293F26CD02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA171D49-0B55-4CEB-9798-4B293F26CD02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA171D49-0B55-4CEB-9798-4B293F26CD02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA171D49-0B55-4CEB-9798-4B293F26CD02}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {820CA4DC-B107-4273-BAC3-C36DC4F38246}
+	EndGlobalSection
+EndGlobal

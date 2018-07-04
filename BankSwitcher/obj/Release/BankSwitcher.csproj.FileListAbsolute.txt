@@ -1,0 +1,14 @@
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\bin\Release\BankSwitcher.exe
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\bin\Release\BankSwitcher.pdb
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\bin\Release\INIFileParser.dll
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\bin\Release\INIFileParser.xml
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\obj\Release\BankSwitcher.LoginForm.resources
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\obj\Release\BankSwitcher.MainForm.resources
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\obj\Release\BankSwitcher.Properties.Resources.resources
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\obj\Release\BankSwitcher.csproj.GenerateResource.cache
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\obj\Release\BankSwitcher.csproj.CoreCompileInputs.cache
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\obj\Release\BankSwitcher.csproj.CopyComplete
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\obj\Release\BankSwitcher.exe
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\obj\Release\BankSwitcher.pdb
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\obj\Release\BankSwitcher.csprojAssemblyReference.cache
+D:\Programming\C#\Projects\BankSwitcher\BankSwitcher\obj\Release\BankSwitcher.LoadingForm.resources

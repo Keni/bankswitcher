@@ -1,0 +1,53 @@
+﻿using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using System.Diagnostics;
+using System.Threading;
+using IniParser;
+using IniParser.Model;
+
+namespace BankSwitcher
+{
+    public partial class MainForm : Form
+    {
+        List<Button> banks = new List<Button>();
+
+        List<PictureBox> listStatusBank = new List<PictureBox>();
+        List<PictureBox> listStatusKeys = new List<PictureBox>();
+        List<PictureBox> listStatusInet = new List<PictureBox>();
+
+        int top = 25;
+        int left = 15;
+        int currentBank = 0;
+        bool counterRow = true;
+
+        LoadingForm loadingForm = new LoadingForm();
+
+        public MainForm()
+        {
+            if (LoginForm.test == true)
+            {
+                InitializeComponent();
+
+                var parser = new FileIniDataParser();
+                IniData banksData = new IniData();
+                try
+                {
+                    banksData = parser.ReadFile("config.ini");
+                }
+                catch
+                {
+                    logToFile("Вызвана ошибка отсутствия файла конфигурации");
+                    MessageBox.Show("Отсутствует файл конфигурации", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Environment.Exit(1);
+                }
+
+                try
+                {
+                    string currentPath = Path.GetDirectoryName(Application.ExecutablePath);
+                    string pathVariables = Environment.GetEnvironmentVariable("PATH");
+                    if (!pathVariables.Contains(currentPat
