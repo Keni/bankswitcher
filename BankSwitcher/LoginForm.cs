@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
+using System.Diagnostics;
 using System.Text;
 using System.Windows.Forms;
 using System.Security.Cryptography;
@@ -12,31 +8,45 @@ namespace BankSwitcher
 {
     public partial class LoginForm : Form
     {
-        string adminPass = "";
-        string userPass = "";
+        string adminPass = "password";
+        string userPass = "password";
+        string hrPass = "password";
+
         public static bool test = false;
+        public static bool hr = false;
         public LoginForm()
         {
-            InitializeComponent();
+            Process[] processes = Process.GetProcessesByName(System.Reflection.Assembly.GetExecutingAssembly().GetName().Name);
+            if (processes.Length <= 1)
+            {
+                InitializeComponent();
 
-            MainForm.logToFile("Приложение было запущено");
+                MainForm.logToFile("Приложение было запущено");
 
-            this.AcceptButton = buttonLogin;                        
+                this.AcceptButton = buttonLogin;
+            }                   
+            else
+            {
+                MessageBox.Show("Приложение уже запущенно", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Environment.Exit(1);
+            }
         }
 
         private void buttonLogin_Click(object sender, EventArgs e)
         {
             string password = generateSHA256(textBoxPassword.Text);
 
-            if (password.Equals(userPass) || password.Equals(adminPass))
+            if (password.Equals(userPass) || password.Equals(adminPass) || password.Equals(hrPass))
             {
                 MainForm.logToFile("Пароль введен верно");
                 test = true;
 
-                MainForm mainForm = new MainForm();
-                this.Hide();
-                mainForm.ShowDialog();
-                this.Close();
+                if (password.Equals(hrPass))
+                {
+                    hr = true;
+                }
+
+                entry();
             }
             else
             {
@@ -50,7 +60,6 @@ namespace BankSwitcher
             SHA256 sha256 = SHA256Managed.Create();
             byte[] bytes = Encoding.UTF8.GetBytes(password);
             byte[] hash = sha256.ComputeHash(bytes);
-            Console.WriteLine(hash);
             return getStringFromHash(hash);
         }
 
@@ -64,6 +73,14 @@ namespace BankSwitcher
             }
 
             return password.ToString();
+        }
+
+        private void entry()
+        {
+            MainForm mainForm = new MainForm();
+            this.Hide();
+            mainForm.ShowDialog();
+            this.Close();
         }
 
     }

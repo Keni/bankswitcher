@@ -19,20 +19,29 @@ namespace BankSwitcher
         List<PictureBox> listStatusBank = new List<PictureBox>();
         List<PictureBox> listStatusKeys = new List<PictureBox>();
         List<PictureBox> listStatusInet = new List<PictureBox>();
+        
+        string networkInterface;
+        string mask;
+        string gateway;
+        string dns;
+        string usbipServerIP;
+        string usbipServerPort;
+        string pingResource;
 
-        int top = 25;
+        int top = 50;
         int left = 15;
         int currentBank = 0;
         bool counterRow = true;
 
         private static LoadingForm loadingForm = new LoadingForm();
-
+        
         public MainForm()
-        {
-            if (LoginForm.test == true)
+        {           
+            if (LoginForm.test)
             {
-                InitializeComponent();
+                InitializeComponent();                
 
+                // Парсим конфиг
                 var parser = new FileIniDataParser();
                 IniData banksData = new IniData();
                 try
@@ -41,11 +50,10 @@ namespace BankSwitcher
                 }
                 catch
                 {
-                    logToFile("Вызвана ошибка отсутствия файла конфигурации");
-                    MessageBox.Show("Отсутствует файл конфигурации", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Environment.Exit(1);
+                    errorAndExit("Возникла ошибка отсутствия файла конфигурации", "Отсутствует файл конфигурации");
                 }
 
+                // Проверка запущена ли программа с админскими правами
                 try
                 {
                     string currentPath = Path.GetDirectoryName(Application.ExecutablePath);
@@ -55,25 +63,25 @@ namespace BankSwitcher
                 }
                 catch
                 {
-                    logToFile("Программа запущена без прав администратор");
-                    MessageBox.Show("Программа запущена без прав администратор", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Environment.Exit(1);
+                    errorAndExit("Программа запущена без прав администратор", "Программа запущена без прав администратор");
                 }
 
                 if (banksData.Sections.Count > 1 && banksData["Options"]["interface"] != null
                     && banksData["Options"]["mask"] != null && banksData["Options"]["gateway"] != null && banksData["Options"]["usbip_server_ip"] != null
                     && banksData["Options"]["usbip_server_ip"] != null  && banksData["Options"]["ping_resource"] != null)
                 {                    
-                    string networkInterface = banksData["Options"]["interface"];
-                    string mask = banksData["Options"]["mask"];
-                    string gateway = banksData["Options"]["gateway"];
-                    string dns = banksData["Options"]["dns"];
-                    string usbipServerIP = banksData["Options"]["usbip_server_ip"];
-                    string usbipServerPort = banksData["Options"]["usbip_server_port"];
-                    string pingResource = banksData["Options"]["ping_resource"];
-
+                    networkInterface = banksData["Options"]["interface"];
+                    mask = banksData["Options"]["mask"];
+                    gateway = banksData["Options"]["gateway"];
+                    dns = banksData["Options"]["dns"];
+                    usbipServerIP = banksData["Options"]["usbip_server_ip"];
+                    usbipServerPort = banksData["Options"]["usbip_server_port"];
+                    pingResource = banksData["Options"]["ping_resource"];
+                    
+                    // Заполнение формы
                     foreach (SectionData bank in banksData.Sections.Skip(1))
                     {
+                        // Формирование кнопки
                         Button buttonBank = new Button
                         {
                             Left = left,
@@ -82,25 +90,27 @@ namespace BankSwitcher
                             Text = bank.Keys["name"]
                         };
                         banks.Add(buttonBank);
+                        
+                        // Параметры тултипа для кнопки
+                        string toolTipCaption = "ID: " + bank.Keys["id"] +
+                                                "\nIP: " + bank.Keys["ip"] +
+                                                "\nID ключа: " + bank.Keys["usb_key_id"];
+
+                        if (bank.Keys["usb_key2_id"] != null)
+                            toolTipCaption += "\nID второго ключа: " + bank.Keys["usb_key2_id"];
+
+                        if (bank.Keys["phone"] != null)
+                            toolTipCaption += "\nНомер сим-карты: " + bank.Keys["phone"];
 
                         ToolTip info = new ToolTip();
                         info.InitialDelay = 1000;
                         info.AutoPopDelay = 60000;
-                        info.SetToolTip(buttonBank,
-                            "ID: " + bank.Keys["id"] +
-                            "\nIP: " + bank.Keys["ip"] +
-                            "\nID-ключа: " + bank.Keys["usb_key_id"] +
-                            "\nНомер сим-карты: " + bank.Keys["phone"] +
-                            "\nПароль от сим-карты: " + bank.Keys["sim_card_password"]
-                            );
+                        info.SetToolTip(buttonBank, toolTipCaption);
 
+                        // Статус кнопки
                         PictureBox statusBank = new PictureBox();
                         PictureBox statusKeys = new PictureBox();
                         PictureBox statusInet = new PictureBox();
-
-                        listStatusBank.Add(statusBank);
-                        listStatusKeys.Add(statusKeys);
-                        listStatusInet.Add(statusInet);
 
                         statusBank.Image = Properties.Resources.led_grey;
                         statusKeys.Image = Properties.Resources.led_grey;
@@ -113,52 +123,75 @@ namespace BankSwitcher
                         statusInet.SizeMode = PictureBoxSizeMode.StretchImage;
                         statusInet.Size = new Size(20, 20);
 
+                        listStatusBank.Add(statusBank);
+                        listStatusKeys.Add(statusKeys);
+                        listStatusInet.Add(statusInet);
+
                         statusBank.Location = new Point(buttonBank.Location.X + buttonBank.Width + 34, buttonBank.Location.Y + 2);
                         statusKeys.Location = new Point(statusBank.Location.X + statusBank.Width + 31, statusBank.Location.Y);
                         statusInet.Location = new Point(statusKeys.Location.X + statusKeys.Width + 27, statusKeys.Location.Y);
 
+                        // Обработка нажатия кнопки                         
                         buttonBank.Click += (sender, args) =>
                         {
                             if (bank.Keys["id"] != null && bank.Keys["ip"] != null && bank.Keys["usb_key_id"] != null)
                             {
-                                Thread threadLoading = new Thread(showLoadingForm);
-                                threadLoading.Start();
+                                logToFile("Выбран банк: " + bank.Keys["name"] + ", ID: " + bank.Keys["id"]);
 
-                                dismountKeys("-d 1");
-                                dismountKeys("-d 2");
-
+                                // Очищение формы и выбор текущего банка
                                 listStatusBank[currentBank].Image = Properties.Resources.led_grey;
                                 listStatusKeys[currentBank].Image = Properties.Resources.led_grey;
                                 listStatusInet[currentBank].Image = Properties.Resources.led_grey;
                                 currentBank = Int32.Parse(bank.Keys["id"]) - 1;
 
-                                logToFile("Выбран банк: " + bank.Keys["name"] + ", ID: " + bank.Keys["id"]);
+                                // Зажигаем кнопку, что банк активировался
+                                listStatusBank[currentBank].Image = Properties.Resources.led_green;
 
-                                loadingForm.labelText = "Инициализация ключей на стороне сервера";
-                                new Thread(() =>
-                                {
-                                    UsbipClient usbipClient = new UsbipClient();
+                                string keys = bank.Keys["usb_key_id"];
+                                if (bank.Keys["usb_key2_id"] != null)
+                                    keys += ", " + bank.Keys["usb_key2_id"];
 
-                                    if (usbipClient.client(usbipServerIP, Int32.Parse(usbipServerPort), bank.Keys["usb_key_id"]))
-                                    {
-                                        threadLoading.Abort();
-                                        this.Invoke(new MethodInvoker(() => this.Enabled = false));
-                                        SelectBank selectBank = new SelectBank(networkInterface, mask, gateway, dns, usbipServerIP, pingResource, statusBank, statusKeys, statusInet, bank);
-                                        this.Invoke(new MethodInvoker(() => this.Enabled = true));
-                                    }
-                                    else
-                                    {
-                                        threadLoading.Abort();
-                                        logToFile("Сервер ключей вернул ошибку, ключ не был инициализирован");
-                                        MessageBox.Show("Сервер ключей вернул ошибку, ключ не был инициализирован", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    }
-                                }).Start();
+                                this.Enabled = false;
                                 
+                                Thread ThreadLoadingDialog = new Thread(LoadingThreadDialog);
+                                ThreadLoadingDialog.Start();
+
+                                dismountKeys();
+                                
+                                // Запускаем поток настройки сетевого интерфейса
+                                Thread ThreadNetwork = new Thread(() =>
+                                {
+                                    loadingForm.labelText = "Применение параметров сетевого адаптера";
+
+                                    Network network = new Network(networkInterface, mask, gateway, dns, pingResource, bank);
+                                });
+                                ThreadNetwork.Start();
+
+                                // Запускаем поток подключения ключей
+                                Thread threadUsbIPClient = new Thread(() =>
+                                {
+                                    loadingForm.labelText = "Инициализация ключей на стороне сервера";
+
+                                    if (usbipClientThread(keys))
+                                    {
+                                        ThreadLoadingDialog.Abort();
+
+                                        Thread ThreadSelectBank = new Thread(() =>
+                                        {
+                                            SelectBank selectBank = new SelectBank(usbipServerIP, pingResource, statusBank, statusKeys, statusInet, bank);
+                                        });
+                                        ThreadSelectBank.Start();
+                                        ThreadSelectBank.Join();
+                                    }
+                                });
+                                threadUsbIPClient.Start();
+                                threadUsbIPClient.Join();
+                                this.Enabled = true;
                             }
                             else
                             {
                                 logToFile("Вызвана ошибка конфигурации банка");
-                                MessageBox.Show("Ошибка конфигурации банка", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);                            
+                                MessageBox.Show("Ошибка конфигурации банка", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                         };
 
@@ -168,7 +201,7 @@ namespace BankSwitcher
                             {
                                 Text = "Банк",
                                 Left = left,
-                                Top = 9,
+                                Top = 34,
                                 AutoSize = true
                             };
 
@@ -176,7 +209,7 @@ namespace BankSwitcher
                             {
                                 Text = "Вкл/Выкл",
                                 Left = left + 265,
-                                Top = 9,
+                                Top = 34,
                                 AutoSize = true
                             };
 
@@ -184,7 +217,7 @@ namespace BankSwitcher
                             {
                                 Text = "Ключи",
                                 Left = left + 325,
-                                Top = 9,
+                                Top = 34,
                                 AutoSize = true
                             };
 
@@ -192,7 +225,7 @@ namespace BankSwitcher
                             {
                                 Text = "Интернет",
                                 Left = left + 365,
-                                Top = 9,
+                                Top = 34,
                                 AutoSize = true
                             };
 
@@ -203,40 +236,56 @@ namespace BankSwitcher
                             counterRow = false;
                         }
 
-                        this.Controls.Add(buttonBank);
-                        this.Controls.Add(statusBank);
-                        this.Controls.Add(statusKeys);
-                        this.Controls.Add(statusInet);
-
-                        top += buttonBank.Height + 2;
-
-                        if (banks.Count % 20 == 0)
+                        if (!LoginForm.hr)
                         {
-                            this.Size = new Size(950, 600);
-                            left += 450;
-                            top = 25;
-                            counterRow = true;
+                            addButton();
+
+                            newLine();
+                        }
+                        else if (LoginForm.hr && bank.Keys["hr"] == "1")
+                        {
+                            addButton();
+
+                            newLine();
+                        }
+
+                        // Функция переноса кнопок на новую строку и формирование по 20 столбцов, но не более 2 столбоцов по 20 кнопок
+                        void newLine()
+                        {
+                            top += buttonBank.Height + 2;
+
+                            if (banks.Count % 20 == 0)
+                            {
+                                this.Size = new Size(950, 600);
+                                left += 450;
+                                top = 50;
+                                counterRow = true;
+                            }
+                        }
+
+                        // Функция добовления кнопок на форму
+                        void addButton()
+                        {
+                            this.Controls.Add(buttonBank);
+                            this.Controls.Add(statusBank);
+                            this.Controls.Add(statusKeys);
+                            this.Controls.Add(statusInet);
                         }
                     }
                 }
                 else if (banksData.Sections.Count > 41)
                 {
-                    logToFile("Слишком много банков добавленно");
-                    MessageBox.Show("Превышен лимит банков. Обратитесь за новой лицензией :)", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Environment.Exit(1);
+                    errorAndExit("Слишком много банков добавленно", "Превышен лимит банков. Обратитесь за новой лицензией :)");
                 }
                 else
                 {
-                    logToFile("Вызвана ошибка содержимого файла конфигурации");
-                    MessageBox.Show("Ошибка конфигурации приложения", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Environment.Exit(1);
+                    errorAndExit("Вызвана ошибка содержимого файла конфигурации", "Ошибка конфигурации приложения");
                 }
             }
             else
             {
                 Environment.Exit(1);
-            }           
-            
+            } 
         }
 
         public static void logToFile(string message)
@@ -262,17 +311,45 @@ namespace BankSwitcher
             process.WaitForExit();
         }
 
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        private void dismountKeys()
         {
             dismountKeys("-d 1");
             dismountKeys("-d 2");
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            dismountKeys();
 
             MainForm.logToFile("Приложение было закрыто");
         }
 
-        private void showLoadingForm()
+        private void LoadingThreadDialog()
         {
             loadingForm.ShowDialog();
+        }
+
+        private bool usbipClientThread(string keys)
+        {
+            UsbipClient usbipClient = new UsbipClient();
+            return usbipClient.client(usbipServerIP, Int32.Parse(usbipServerPort), keys);
+        }
+
+        private void errorAndExit(string log, string message)
+        {
+            logToFile(log);
+            MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Environment.Exit(1);
+        }
+
+        private void rebootToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UsbipClient usbipClient = new UsbipClient();
+
+            if (usbipClient.client(usbipServerIP, Int32.Parse(usbipServerPort), "reboot"))
+            {
+                MessageBox.Show("Сервер был перезагружен, это займет 1-2 минуты", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
     }
 }

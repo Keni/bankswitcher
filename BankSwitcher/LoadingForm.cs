@@ -6,7 +6,7 @@ namespace BankSwitcher
     {
         public LoadingForm()
         {
-            InitializeComponent();            
+            InitializeComponent();
         }
 
         public string labelText
@@ -28,6 +28,10 @@ namespace BankSwitcher
                 }
                 
             }
+        }
+
+        private void button1_Click(object sender, System.EventArgs e)
+        {
         }
     }
 }

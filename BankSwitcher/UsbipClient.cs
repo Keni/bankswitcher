@@ -7,7 +7,7 @@ namespace BankSwitcher
 {
     class UsbipClient
     {
-        public bool client(string address, int port, string key)
+        public bool client(string address, int port, string command)
         {
             try
             {
@@ -17,7 +17,7 @@ namespace BankSwitcher
 
                 socket.Connect(ipPoint);
 
-                byte[] data = Encoding.UTF8.GetBytes(key);
+                byte[] data = Encoding.UTF8.GetBytes(command);
                 socket.Send(data);
 
                 data = new byte[1024];
@@ -35,7 +35,7 @@ namespace BankSwitcher
                 socket.Shutdown(SocketShutdown.Both);
                 socket.Close();
 
-                if (builder.ToString().Equals("success"))
+                if (builder.ToString().Equals("success") || builder.ToString().Equals("rebooting"))
                 {
                     return true;                    
                 }
@@ -44,7 +44,7 @@ namespace BankSwitcher
                     return false;
                 }
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 return false;
             }
