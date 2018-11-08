@@ -33,7 +33,7 @@ namespace BankSwitcher
         int currentBank = 0;
         bool counterRow = true;
 
-        private static LoadingForm loadingForm = new LoadingForm();
+        public static LoadingForm loadingForm = new LoadingForm();
         
         public MainForm()
         {           
@@ -152,7 +152,9 @@ namespace BankSwitcher
                                     keys += ", " + bank.Keys["usb_key2_id"];
 
                                 this.Enabled = false;
-                                
+
+                                loadingForm.labelText = "Применение параметров сетевого адаптера";
+
                                 Thread ThreadLoadingDialog = new Thread(LoadingThreadDialog);
                                 ThreadLoadingDialog.Start();
 
@@ -161,8 +163,6 @@ namespace BankSwitcher
                                 // Запускаем поток настройки сетевого интерфейса
                                 Thread ThreadNetwork = new Thread(() =>
                                 {
-                                    loadingForm.labelText = "Применение параметров сетевого адаптера";
-
                                     Network network = new Network(networkInterface, mask, gateway, dns, pingResource, bank);
                                 });
                                 ThreadNetwork.Start();
@@ -174,18 +174,18 @@ namespace BankSwitcher
 
                                     if (usbipClientThread(keys))
                                     {
-                                        ThreadLoadingDialog.Abort();
-
                                         Thread ThreadSelectBank = new Thread(() =>
                                         {
                                             SelectBank selectBank = new SelectBank(usbipServerIP, pingResource, statusBank, statusKeys, statusInet, bank);
                                         });
+                                        ThreadNetwork.Join();
                                         ThreadSelectBank.Start();
                                         ThreadSelectBank.Join();
                                     }
                                 });
                                 threadUsbIPClient.Start();
                                 threadUsbIPClient.Join();
+                                ThreadLoadingDialog.Abort();
                                 this.Enabled = true;
                             }
                             else

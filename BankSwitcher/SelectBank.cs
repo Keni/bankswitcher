@@ -15,28 +15,23 @@ namespace BankSwitcher
 
         private static bool working;
 
-        private static LoadingForm loadingForm = new LoadingForm();
-
         public SelectBank(string usbipServer, string pingResource, 
             PictureBox statusBank, PictureBox statusKeys, PictureBox statusInet, SectionData section)
         {
             if (LoginForm.test != false)
             {
-                Thread threadLoading = new Thread(showLoadingForm);
-                threadLoading.Start();                
-
-                loadingForm.labelText = "Проверка связи с сервером ключей";
+                MainForm.loadingForm.labelText = "Проверка связи с сервером ключей";
 
                 try
                 {
-                    loadingForm.labelText = "Подключение ключа";
+                    MainForm.loadingForm.labelText = "Подключение ключа";
 
                     string usbipKey = " -a " + usbipServer + " -b " + section.Keys["usb_key_id"];
                     mountKeys(usbipKey, statusKeys);
 
                     if (section.Keys["usb_key2_id"] != null)
                     {
-                        loadingForm.labelText = "Подключение второго ключа";
+                        MainForm.loadingForm.labelText = "Подключение второго ключа";
                         string usbipKey_2 = " -a " + usbipServer + " -b " + section.Keys["usb_key2_id"];
                         mountKeys(usbipKey_2, statusKeys);
                     }
@@ -50,10 +45,11 @@ namespace BankSwitcher
                 
                 for (int i = 1; i <= 10; i++)
                 {
-                    loadingForm.labelText = "Проверка интернета";
+                    MainForm.loadingForm.labelText = "Проверка интернета";
+
                     try
                     {
-                        loadingForm.labelText = "Попытка проверки интернета #" + i;
+                        MainForm.loadingForm.labelText = "Попытка проверки интернета #" + i;
 
                         //loadingForm.buttonCancel.Enabled = true;
 
@@ -63,9 +59,7 @@ namespace BankSwitcher
                         {
                             MainForm.logToFile("Статус интернета: ОК");
                             statusInet.Image = Properties.Resources.led_green;
-
-                            threadLoading.Abort();
-
+                            
                             if (working)
                             {
                                 try
@@ -102,7 +96,6 @@ namespace BankSwitcher
                             {
                                 MainForm.logToFile("Статус интернета: Нет пинга");
                                 statusInet.Image = Properties.Resources.led_red;
-                                threadLoading.Abort();
                                 
                                 if (working)
                                 {
@@ -123,7 +116,6 @@ namespace BankSwitcher
                     {
                         MainForm.logToFile("Статус интернета: Ошибка соединения");
                         statusInet.Image = Properties.Resources.led_red;
-                        threadLoading.Abort();
                         break;
                     }
 
@@ -148,7 +140,7 @@ namespace BankSwitcher
 
             Thread.Sleep(2000);
 
-            loadingForm.labelText = "Проверка проброса ключей";
+            MainForm.loadingForm.labelText = "Проверка проброса ключей";
 
             Process[] pname = Process.GetProcessesByName("usbip");
             if (pname.Length != 0)
@@ -163,11 +155,6 @@ namespace BankSwitcher
                 statusKeys.Image = Properties.Resources.led_red;
                 working = false;
             }
-        }
-
-        private void showLoadingForm()
-        {
-            loadingForm.ShowDialog();           
         }
     }
 }

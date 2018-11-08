@@ -11,7 +11,6 @@ namespace BankSwitcher
         string adminPass = "password";
         string userPass = "password";
         string hrPass = "password";
-
         public static bool test = false;
         public static bool hr = false;
         public LoginForm()
@@ -24,7 +23,7 @@ namespace BankSwitcher
                 MainForm.logToFile("Приложение было запущено");
 
                 this.AcceptButton = buttonLogin;
-            }                   
+            }
             else
             {
                 MessageBox.Show("Приложение уже запущенно", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
