@@ -182,6 +182,12 @@ namespace BankSwitcher
                                         ThreadSelectBank.Start();
                                         ThreadSelectBank.Join();
                                     }
+                                    else
+                                    {
+                                        statusKeys.Image = Properties.Resources.led_red;
+                                        MainForm.logToFile("Сервер вернул ошибку");
+                                        MessageBox.Show("Ошибка на стороне сервера", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    }
                                 });
                                 threadUsbIPClient.Start();
                                 threadUsbIPClient.Join();
